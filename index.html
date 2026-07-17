@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Control USDT</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #0f172a;
+  color: white;
+  padding: 20px;
+}
+
+input, button {
+  padding: 10px;
+  margin: 10px 0;
+}
+
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+td, th {
+  border: 1px solid #333;
+  padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Control USDT</h1>
+
+<input type="number" id="amount" placeholder="Monto en USDT">
+<button onclick="calculate()">Calcular & Guardar</button>
+
+<div id="results"></div>
+
+<h2>Historial</h2>
+
+<table>
+<thead>
+<tr>
+<th>Fecha</th>
+<th>USDT</th>
+<th>Gestor</th>
+<th>Conversión</th>
+<th>Neto</th>
+</tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+
+<script>
+let data = JSON.parse(localStorage.getItem("transactions")) || [];
+
+function calculate() {
+  const amount = parseFloat(document.getElementById("amount").value);
+
+  if (!amount) {
+    alert("Ingresa un monto");
+    return;
+  }
+
+  const gestorFee = amount * 0.02;
+  const afterGestor = amount - gestorFee;
+
+  const conversionFee = afterGestor * 0.0275;
+  const final = afterGestor - conversionFee;
+
+  document.getElementById("results").innerHTML = `
+    Gestor: ${gestorFee.toFixed(2)} USDT <br>
+    Conversión: ${conversionFee.toFixed(2)} USDT <br>
+    Neto: ${final.toFixed(2)} USDT
+  `;
+
+  const record = {
+    date: new Date().toLocaleString(),
+    amount,
+    gestorFee,
+    conversionFee,
+    final
+  };
+
+  data.push(record);
+  localStorage.setItem("transactions", JSON.stringify(data));
+
+  render();
+}
+
+function render() {
+  const table = document.getElementById("history");
+  table.innerHTML = "";
+
+  data.forEach(d => {
+    table.innerHTML += `
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.amount}</td>
+        <td>${d.gestorFee.toFixed(2)}</td>
+        <td>${d.conversionFee.toFixed(2)}</td>
+        <td>${d.final.toFixed(2)}</td>
+      </tr>
+    `;
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
